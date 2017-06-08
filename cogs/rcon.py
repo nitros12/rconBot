@@ -29,7 +29,11 @@ class Rcon:
 
     async def run_rcon(self, conn, command):
         conn = rcon.RCON(*conn)
-        return await self.bot.loop.run_in_executor(None, conn, command)
+        await self.bot.loop.run_in_executor(None, conn.connect)
+        await self.bot.loop.run_in_executor(None, conn.authenticate)
+        text = await self.bot.loop.run_in_executor(None, conn, command)
+        await self.bot.loop.run_in_executor(None, conn.close)
+        return text
 
     @commands.has_permissions(administrator=True)
     @commands.command()
