@@ -62,7 +62,7 @@ class Rcon:
 
     @check_redis_roles()
     @commands.command()
-    async def rcon_command(self, ctx, name: str, *, command: str):
+    async def command(self, ctx, name: str, *, command: str):
         """Send a rcon command to a connection and return the response."""
         key = f"{ctx.guild.id}:rcon_connections:{name}"
 
@@ -75,6 +75,13 @@ class Rcon:
         with ctx.channel.typing():
             resp = await self.run_rcon(conn, command)
             await ctx.send(f"```\n{resp}```")
+
+    @check_redis_roles
+    @commands.command(name="list")
+    async def list_cmd(self, ctx):
+        keys = await self.bot.redis.keys(f"{ctx.guild.id}:rcon_connections:")
+        filtered = "\n".join(i.split(':')[-1] for i in keys)
+        await ctx.send(f"```\n{filtered}```")
 
 
 def setup(bot):
