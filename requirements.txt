@@ -1,0 +1,3 @@
+git+https://github.com/Rapptz/discord.py.git@rewrite
+git+https://github.com/Holiverh/python-valve.git
+asyncio_redis
