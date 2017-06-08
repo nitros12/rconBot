@@ -82,7 +82,7 @@ class Rcon:
     @commands.command(name="list")
     async def list_cmd(self, ctx):
         keys = await self.bot.redis.keys(f"{ctx.guild.id}:rcon_connections:*")
-        filtered = "\n".join((await i).split(':')[-1] for i in keys)
+        filtered = "\n".join(((await i).split(':')[-1] for i in keys))
         await ctx.send(f"```\n{filtered}```")
 
 
