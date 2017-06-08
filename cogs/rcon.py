@@ -35,6 +35,13 @@ class Rcon:
         await self.bot.loop.run_in_executor(None, conn.close)
         return text
 
+    async def handle_rcon(self, guild, name, command):
+        key = f"{guild.id}:rcon_connections:{name}"
+        coninfo = await self.bot.redis.hgetall_asdict(key)
+
+        ip, port, pw = coninfo.values()
+        return await self.run_rcon((ip, int(port)), pw, command)
+
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def add_rcon(self, ctx, name: str, ip: str, port: int, pw: str):
@@ -70,17 +77,8 @@ class Rcon:
     @commands.command()
     async def command(self, ctx, name: str, *, command: str):
         """Send a rcon command to a connection and return the response."""
-        key = f"{ctx.guild.id}:rcon_connections:{name}"
-
-        coninfo = await self.bot.redis.hgetall_asdict(key)
-        if coninfo is None:
-            await ctx.send(f"{name} is not a valid rcon connection!")
-            return
-
-        ip, port, pw = coninfo.values()
-        with ctx.channel.typing():
-            resp = await self.run_rcon((ip, int(port)), pw, command)
-            await ctx.send(f"```\n{resp}```")
+        resp = await self.handle_rcon(ctx.guild, name, command)
+        await ctx.send(f"```\n{resp}```")
 
     @check_redis_roles()
     @commands.command(name="list")
@@ -89,6 +87,38 @@ class Rcon:
         split = [(await i).split(':')[-1] for i in keys]
         joined = "\n".join(split)
         await ctx.send(f"```\n{joined}```")
+
+    @commands.has_permissions(administrator=True)
+    @commands.command()
+    async def set_default(self, ctx, name: str):
+        """Set default connection to use for cmd command."""
+        await self.bot.redis.set(f"{ctx.guild.id}:rcon_default", name)
+        await ctx.send(f"Set default connection to {name}")
+
+    @check_redis_roles()
+    @commands.command()
+    async def cmd(self, ctx, *, command: str):
+        """Shortcut for command that uses default channel."""
+        default = await self.bot.redis.get(f"{ctx.guild.id}:rcon_default")
+        if default is None:
+            await ctx.send("No default channel set, use set_default to use this!")
+            return
+
+        resp = await self.handle_rcon(ctx.guild, default, command)
+        await ctx.send(f"```\n{resp}```")
+
+    @check_redis_roles()
+    @commands.command()
+    async def say(self, ctx, *, msg: str):
+        """Helper command to send a message to the server."""
+        default = await self.bot.redis.get(f"{ctx.guild.id}:rcon_default")
+        if default is None:
+            await ctx.send("No default channel set, use set_default to use this!")
+            return
+
+        cmd = f'say "{msg}"'
+        resp = await self.handle_rcon(ctx.guild, default, cmd)
+        await ctx.send(f"```\n{resp}```")
 
 
 def setup(bot):
