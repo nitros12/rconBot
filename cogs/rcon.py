@@ -76,7 +76,7 @@ class Rcon:
             resp = await self.run_rcon(conn, command)
             await ctx.send(f"```\n{resp}```")
 
-    @check_redis_roles
+    @check_redis_roles()
     @commands.command(name="list")
     async def list_cmd(self, ctx):
         keys = await self.bot.redis.keys(f"{ctx.guild.id}:rcon_connections:")
