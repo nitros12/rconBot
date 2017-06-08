@@ -28,7 +28,7 @@ class Rcon:
         self.bot = bot
 
     async def run_rcon(self, conn, command):
-        conn = rcon.RCON(*conn)
+        conn = rcon.RCON(conn)
         await self.bot.loop.run_in_executor(None, conn.connect)
         await self.bot.loop.run_in_executor(None, conn.authenticate)
         text = await self.bot.loop.run_in_executor(None, conn, command)
@@ -73,7 +73,6 @@ class Rcon:
         key = f"{ctx.guild.id}:rcon_connections:{name}"
 
         coninfo = await self.bot.redis.hgetall_asdict(key)
-        print(coninfo)
         if coninfo is None:
             await ctx.send(f"{name} is not a valid rcon connection!")
             return
