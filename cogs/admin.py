@@ -9,3 +9,7 @@ class Admin:
     async def stop(self, ctx):
         await ctx.send("Shutting down.")
         await self.bot.close()
+
+
+def setup(bot):
+    bot.add_cog(Admin(bot))
