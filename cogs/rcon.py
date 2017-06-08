@@ -79,7 +79,7 @@ class Rcon:
 
         ip, port, pw = coninfo.values()
         with ctx.channel.typing():
-            resp = await self.run_rcon((ip, str(port)), command)
+            resp = await self.run_rcon((ip, str(port)), pw, command)
             await ctx.send(f"```\n{resp}```")
 
     @check_redis_roles()
