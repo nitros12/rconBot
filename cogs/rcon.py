@@ -27,8 +27,8 @@ class Rcon:
         self.rcon_sessions = {}
         self.bot = bot
 
-    async def run_rcon(self, conn, command):
-        conn = rcon.RCON(conn)
+    async def run_rcon(self, conn, pw, command):
+        conn = rcon.RCON(conn, pw)
         await self.bot.loop.run_in_executor(None, conn.connect)
         await self.bot.loop.run_in_executor(None, conn.authenticate)
         text = await self.bot.loop.run_in_executor(None, conn, command)
