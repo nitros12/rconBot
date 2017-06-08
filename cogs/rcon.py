@@ -73,6 +73,7 @@ class Rcon:
         key = f"{ctx.guild.id}:rcon_connections:{name}"
 
         coninfo = await self.bot.redis.hmget_aslist(key, [str, str, str])
+        print(coninfo)
         if coninfo is None:
             await ctx.send(f"{name} is not a valid rcon connection!")
             return
