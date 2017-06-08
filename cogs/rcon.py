@@ -76,3 +76,7 @@ class Rcon:
         with ctx.channel.typing():
             resp = await self.run_rcon(conn, command)
             await ctx.send(f"```\n{resp}```")
+
+
+def setup(bot):
+    bot.add_cog(Rcon(bot))
