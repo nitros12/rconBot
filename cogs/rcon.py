@@ -35,7 +35,7 @@ class Rcon:
     @commands.command()
     async def add_rcon(self, ctx, name: str, ip: str, port: int, pw: str):
         """Add a rcon address to the bot."""
-        await self.bot.redis.hmset(f"{ctx.guild.id}:rcon_connections:{name}", dict(ip=ip, port=port, pw=pw))
+        await self.bot.redis.hmset(f"{ctx.guild.id}:rcon_connections:{name}", dict(ip=ip, port=str(port), pw=pw))
         await ctx.send("Added rcon connection: {name}!")
 
     @commands.has_permissions(administrator=True)
@@ -50,7 +50,7 @@ class Rcon:
     async def add_role(self, ctx, role: discord.Role):
         """Allow a role to list and command RCON connections.
         Note only one role is assigned per guild. Setting this when a role already is set will override."""
-        await self.bot.redis.set(f"{ctx.guild.id}:rcon_role", role.id)
+        await self.bot.redis.set(f"{ctx.guild.id}:rcon_role", str(role.id))
         await ctx.send("Set {role} as controlling rcon role for this guild!")
 
     @commands.has_permissions(administrator=True)
