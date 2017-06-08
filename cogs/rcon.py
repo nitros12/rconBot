@@ -26,7 +26,6 @@ class Rcon:
     def __init__(self, bot):
         self.rcon_sessions = {}
         self.bot = bot
-        self.bot.redis = bot.redis
 
     async def run_rcon(self, conn, command):
         conn = rcon.RCON(*conn)
