@@ -2,7 +2,7 @@ from discord.ext import commands
 
 import asyncio_redis
 
-base_cogs = ('cogs.rcon',)
+base_cogs = ('cogs.rcon', 'cogs.admin')
 
 
 class RconBot(commands.Bot):
