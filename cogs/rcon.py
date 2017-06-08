@@ -36,14 +36,14 @@ class Rcon:
     async def add_rcon(self, ctx, name: str, ip: str, port: int, pw: str):
         """Add a rcon address to the bot."""
         await self.bot.redis.hmset(f"{ctx.guild.id}:rcon_connections:{name}", dict(ip=ip, port=str(port), pw=pw))
-        await ctx.send("Added rcon connection: {name}!")
+        await ctx.send(f"Added rcon connection: {name}!")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def delete_rcon(self, ctx, name: str):
         """Delete a rcon address from the bot."""
         await self.bot.redis.delete(f"{ctx.guild.id}:rcon_connections:{name}")
-        await ctx.send("Deleted rcon connection: {name}!")
+        await ctx.send(f"Deleted rcon connection: {name}!")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
@@ -51,7 +51,7 @@ class Rcon:
         """Allow a role to list and command RCON connections.
         Note only one role is assigned per guild. Setting this when a role already is set will override."""
         await self.bot.redis.set(f"{ctx.guild.id}:rcon_role", str(role.id))
-        await ctx.send("Set {role} as controlling rcon role for this guild!")
+        await ctx.send(f"Set {role} as controlling rcon role for this guild!")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
@@ -68,7 +68,7 @@ class Rcon:
 
         coninfo = await self.bot.redis.hmget_aslist(key, (str, int, str))
         if coninfo is None:
-            await ctx.send("{name} is not a valid rcon connection!")
+            await ctx.send(f"{name} is not a valid rcon connection!")
             return
 
         *conn, pw = coninfo
