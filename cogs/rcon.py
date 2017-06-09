@@ -120,6 +120,12 @@ class Rcon:
         resp = await self.handle_rcon(ctx.guild, default, cmd)
         await ctx.send(f"```\n{resp}```")
 
+    async def __error(self, ctx, error):
+        if not isinstance(error, rcon.RCONError):
+            return
+
+        await ctx.send(f"Rcon failed with reason: ```{error}```")
+
 
 def setup(bot):
     bot.add_cog(Rcon(bot))
