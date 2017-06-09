@@ -31,7 +31,8 @@ class Rcon:
         conn = rcon.RCON(conn, pw)
         await self.bot.loop.run_in_executor(None, conn.connect)
         await self.bot.loop.run_in_executor(None, conn.authenticate)
-        text = await self.bot.loop.run_in_executor(None, conn, command)
+        resp = await self.bot.loop.run_in_executor(None, conn.execute, command)
+        text = resp.body.decode('utf-8')
         await self.bot.loop.run_in_executor(None, conn.close)
         return text
 
