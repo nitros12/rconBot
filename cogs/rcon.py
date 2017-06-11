@@ -4,6 +4,12 @@ from discord.ext import commands
 from valve import rcon
 
 
+def split_by_len(text: str, n: int) -> [str]:
+    while text:
+        yield text[:n]
+        text = text[n:]
+
+
 def check_redis_roles():
     async def predicate(ctx):
         if ctx.cog is None:
@@ -79,7 +85,8 @@ class Rcon:
     async def command(self, ctx, name: str, *, command: str):
         """Send a rcon command to a connection and return the response."""
         resp = await self.handle_rcon(ctx.guild, name, command)
-        await ctx.send(f"```\n{resp}```")
+        for i in split_by_len(resp, 2000):
+            await ctx.send(f"```\n{i}```")
 
     @check_redis_roles()
     @commands.command(name="list")
@@ -106,7 +113,8 @@ class Rcon:
             return
 
         resp = await self.handle_rcon(ctx.guild, default, command)
-        await ctx.send(f"```\n{resp}```")
+        for i in split_by_len(resp, 2000):
+            await ctx.send(f"```\n{i}```")
 
     @check_redis_roles()
     @commands.command()
@@ -119,7 +127,8 @@ class Rcon:
 
         cmd = f'say "{msg}"'
         resp = await self.handle_rcon(ctx.guild, default, cmd)
-        await ctx.send(f"```\n{resp}```")
+        for i in split_by_len(resp, 2000):
+            await ctx.send(f"```\n{i}```")
 
     async def __error(self, ctx, error):
         if not isinstance(error, rcon.RCONError):
