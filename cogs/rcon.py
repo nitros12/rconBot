@@ -58,10 +58,13 @@ class Rcon:
 
     @commands.has_permissions(administrator=True)
     @commands.command()
-    async def delete_rcon(self, ctx, name: str):
+    async def delete_rcon(self, ctx, *names: str):
         """Delete a rcon address from the bot."""
-        await self.bot.redis.delete([f"{ctx.guild.id}:rcon_connections:{name}"])
-        await ctx.send(f"Deleted rcon connection: {name}!")
+        res = await self.bot.redis.delete(f"{ctx.guild.id}:rcon_connections:{i}" for i in names)
+        if res:
+            await ctx.send(f"Deleted rcon {res} connections: {', '.join(names)}!")
+        else:
+            await ctx.send("No connections to delete")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
