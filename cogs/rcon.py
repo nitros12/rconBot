@@ -130,11 +130,6 @@ class Rcon:
         for i in split_by_len(resp, 1900):
             await ctx.send(f"```\n{i}```")
 
-    async def __error(self, ctx, error):
-        if isinstance(error, commands.CommandInvokeError):
-            if isinstance(error.original, rcon.RCONError):
-                await ctx.send(f"Rcon failed with reason: ```{error}```")
-
 
 def setup(bot):
     bot.add_cog(Rcon(bot))
