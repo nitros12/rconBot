@@ -131,7 +131,7 @@ class Rcon:
             await ctx.send(f"```\n{i}```")
 
     async def __error(self, ctx, error):
-        if isinstance(error, discord.CommandInvokeError):
+        if isinstance(error, commands.CommandInvokeError):
             if isinstance(error.original, rcon.RCONError):
                 await ctx.send(f"Rcon failed with reason: ```{error}```")
 
