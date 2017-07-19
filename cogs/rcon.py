@@ -60,7 +60,7 @@ class Rcon:
     @commands.command()
     async def delete_rcon(self, ctx, name: str):
         """Delete a rcon address from the bot."""
-        await self.bot.redis.delete(f"{ctx.guild.id}:rcon_connections:{name}")
+        await self.bot.redis.delete([f"{ctx.guild.id}:rcon_connections:{name}"])
         await ctx.send(f"Deleted rcon connection: {name}!")
 
     @commands.has_permissions(administrator=True)
