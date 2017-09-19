@@ -10,20 +10,15 @@ def split_by_len(text: str, n: int) -> [str]:
         text = text[n:]
 
 
-def check_redis_roles():
-    async def predicate(ctx):
-        if ctx.cog is None:
-            return True  # for help command
-
-        role_id = await ctx.bot.redis.get(f"{ctx.guild.id}:rcon_role")
-        if role_id is None:  # added no rcon roles
-            return False
-
-        role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-        if role in ctx.author.roles:
+def check_roles():
+    def predicate(ctx: commands.Context):
+        if ctx.invoked_with == "help":
             return True
-
-        return False
+        role = ctx.bot.config.get(ctx.guild.id, {}).get("roles")
+        if role is None:
+            return False
+        role = discord.utils.get(ctx.guild.roles, id=int(role))
+        return role in ctx.author.roles
     return commands.check(predicate)
 
 
@@ -43,8 +38,7 @@ class Rcon:
         return text
 
     async def handle_rcon(self, guild, name, command):
-        key = f"{guild.id}:rcon_connections:{name}"
-        coninfo = await self.bot.redis.hgetall_asdict(key)
+        coninfo = ctx.bot.config[guild.id]["rcon_connections"][name]
 
         ip, port, pw = coninfo.values()
         return await self.run_rcon((ip, int(port)), pw, command)
@@ -53,15 +47,19 @@ class Rcon:
     @commands.command()
     async def add_rcon(self, ctx, name: str, ip: str, port: int, pw: str):
         """Add a rcon address to the bot."""
-        await self.bot.redis.hmset(f"{ctx.guild.id}:rcon_connections:{name}", dict(ip=ip, port=str(port), pw=pw))
+        ctx.bot.config[ctx.guild.id]["rcon_connections"][name] = dict(
+            ip=ip, port=str(port), pw=pw)
+        await ctx.bot.config.save()
         await ctx.send(f"Added rcon connection: {name}!")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def delete_rcon(self, ctx, *names: str):
         """Delete a rcon address from the bot."""
-        res = await self.bot.redis.delete(f"{ctx.guild.id}:rcon_connections:{i}" for i in names)
+        for i in names:
+            res += bool(ctx.bot.config[ctx.guild.id]["rcon_connections"].pop(i))
         if res:
+            await ctx.bot.config.save()
             await ctx.send(f"Deleted rcon {res} connections: {', '.join(names)}!")
         else:
             await ctx.send("No connections to delete")
@@ -73,17 +71,19 @@ class Rcon:
 
         Note only one role is assigned per guild. Setting this when a role already is set will override.
         """
-        await self.bot.redis.set(f"{ctx.guild.id}:rcon_role", str(role.id))
+        ctx.bot.config[ctx.guild.id]["rcon_role"] = role.id
+        await ctx.bot.config.save()
         await ctx.send(f"Set {role} as controlling rcon role for this guild!")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def delete_role(self, ctx):
         """Delete role for accessing rcon."""
-        await self.bot.redis.delete([f"{ctx.guild.id}:rcon_role"])
+        ctx.bot.config[ctx.guild.id].pop("rcon_role", None)
+        await ctx.bot.config.save()
         await ctx.send("Removed role controlling rcon role for this guild!")
 
-    @check_redis_roles()
+    @check_roles()
     @commands.command()
     async def command(self, ctx, name: str, *, command: str):
         """Send a rcon command to a connection and return the response."""
@@ -91,26 +91,26 @@ class Rcon:
         for i in split_by_len(resp, 1900):
             await ctx.send(f"```\n{i}```")
 
-    @check_redis_roles()
+    @check_roles()
     @commands.command(name="list")
     async def list_cmd(self, ctx):
-        keys = await self.bot.redis.keys(f"{ctx.guild.id}:rcon_connections:*")
-        split = [(await i).split(':')[-1] for i in keys]
-        joined = "\n".join(split)
+        keys = ctx.bot.config[ctx.guild.id]["rcon_connections"].keys()
+        joined = "\n".join(keys) or "no connections added"
         await ctx.send(f"```\n{joined}```")
 
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def set_default(self, ctx, name: str):
         """Set default connection to use for cmd command."""
-        await self.bot.redis.set(f"{ctx.guild.id}:rcon_default", name)
+        ctx.bot.config[ctx.guild.id]["rcon_default"] = name
+        await ctx.bot.config.save()
         await ctx.send(f"Set default connection to {name}")
 
-    @check_redis_roles()
+    @check_roles()
     @commands.command()
     async def cmd(self, ctx, *, command: str):
         """Shortcut for command that uses default channel."""
-        default = await self.bot.redis.get(f"{ctx.guild.id}:rcon_default")
+        default = ctx.bot.config[ctx.guild.id].get("rcon_default")
         if default is None:
             await ctx.send("No default channel set, use set_default to use this!")
             return
@@ -119,11 +119,11 @@ class Rcon:
         for i in split_by_len(resp, 1900):
             await ctx.send(f"```\n{i}```")
 
-    @check_redis_roles()
+    @check_roles()
     @commands.command()
     async def say(self, ctx, *, msg: str):
         """Helper command to send a message to the server."""
-        default = await self.bot.redis.get(f"{ctx.guild.id}:rcon_default")
+        default = ctx.bot.config[ctx.guild.id].get("rcon_default")
         if default is None:
             await ctx.send("No default channel set, use set_default to use this!")
             return
