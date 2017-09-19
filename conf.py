@@ -16,7 +16,7 @@ def build_dict(d):
 
 class Config:
     def __init__(self, fname: str, decoder):
-        self.decoder = decoder()
+        self.decoder = decoder
         self.fname = fname
         self.lock = Lock()
         self._load()
