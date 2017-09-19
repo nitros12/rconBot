@@ -18,11 +18,10 @@ def build_dict(d):
 
 class Config:
     def __init__(self, fname: str, decoder=YAML):
-        self.decoder = decoder
+        self.decoder = decoder()
         self.fname = fname
         self.lock = Lock()
-        with open(self.fname) as fp:
-            self.data: dict = self.decoder.load(fp)
+        self._load()
 
     def __getitem__(self, item):
         return self.data[str(item)]
