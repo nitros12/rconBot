@@ -1,8 +1,6 @@
 from collections import defaultdict
 from asyncio import Lock
 
-from ruamel.yaml import YAML
-
 
 def ddict(*args, **kwargs):
     return defaultdict(ddict, *args, **kwargs)
@@ -17,7 +15,7 @@ def build_dict(d):
 
 
 class Config:
-    def __init__(self, fname: str, decoder=YAML):
+    def __init__(self, fname: str, decoder):
         self.decoder = decoder()
         self.fname = fname
         self.lock = Lock()
