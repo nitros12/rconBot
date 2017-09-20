@@ -14,7 +14,7 @@ def check_roles():
     def predicate(ctx: commands.Context):
         if ctx.invoked_with == "help":
             return True
-        role = ctx.bot.config.get(ctx.guild.id, {}).get("roles")
+        role = ctx.bot.config[ctx.guild.id].get("rcon_role")
         if role is None:
             return False
         role = discord.utils.get(ctx.guild.roles, id=int(role))
@@ -38,7 +38,7 @@ class Rcon:
         return text
 
     async def handle_rcon(self, guild, name, command):
-        coninfo = ctx.bot.config[guild.id]["rcon_connections"][name]
+        coninfo = self.bot.config[guild.id]["rcon_connections"][name]
 
         ip, port, pw = coninfo.values()
         return await self.run_rcon((ip, int(port)), pw, command)
@@ -56,8 +56,8 @@ class Rcon:
     @commands.command()
     async def delete_rcon(self, ctx, *names: str):
         """Delete a rcon address from the bot."""
-        for i in names:
-            res += bool(ctx.bot.config[ctx.guild.id]["rcon_connections"].pop(i))
+        # sketchy ik
+        res = sum(bool(ctx.bot.config[ctx.guild.id]["rcon_connections"].pop(i) for i in names))
         if res:
             await ctx.bot.config.save()
             await ctx.send(f"Deleted rcon {res} connections: {', '.join(names)}!")
